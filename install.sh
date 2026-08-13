@@ -326,9 +326,12 @@ install_config() {
 }
 
 install_launcher() {
+    # Use --path instead of --config: if ~/.config/quickshell/shell.qml exists
+    # (another shell's default config), Quickshell ignores named subdirectories
+    # and `quickshell --config DynaLinux` fails with "Could not find ... config".
     cat > "$LAUNCHER_PATH" <<EOF
 #!/usr/bin/env sh
-exec quickshell --config $CONFIG_NAME "\$@"
+exec quickshell --path "$CONFIG_DIR" "\$@"
 EOF
     chmod +x "$LAUNCHER_PATH"
     log "Installed launcher to $LAUNCHER_PATH"
@@ -367,6 +370,16 @@ run_doctor() {
         doctor_ok "installed config exists at $CONFIG_DIR"
     else
         doctor_fail "installed config is missing at $CONFIG_DIR"
+    fi
+
+    if [ -f "$XDG_CONFIG_HOME/quickshell/shell.qml" ]; then
+        doctor_warn "default quickshell config exists at $XDG_CONFIG_HOME/quickshell/shell.qml (named --config lookups are disabled; dynalinux uses --path)"
+    fi
+
+    if [ -x "$LAUNCHER_PATH" ] && grep -qF -- "--path" "$LAUNCHER_PATH" 2>/dev/null; then
+        doctor_ok "launcher uses --path (works alongside a default quickshell config)"
+    elif [ -x "$LAUNCHER_PATH" ] && grep -qF -- "--config" "$LAUNCHER_PATH" 2>/dev/null; then
+        doctor_warn "launcher still uses --config; re-run ./install.sh --skip-deps to refresh it"
     fi
 
     if has_cmd fc-match; then
