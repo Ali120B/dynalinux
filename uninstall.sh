@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="Dynamic Glacier"
-CONFIG_NAME="DynamicGlacier"
+APP_NAME="DynaLinux"
+CONFIG_NAME="DynaLinux"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 CONFIG_DIR="$XDG_CONFIG_HOME/quickshell/$CONFIG_NAME"
-LAUNCHER_PATH="$XDG_BIN_HOME/dynamic-glacier"
+LAUNCHER_PATH="$XDG_BIN_HOME/dynalinux"
 HYPR_CONFIG_DIR="$XDG_CONFIG_HOME/hypr"
 HYPR_CONFIG_PATH="$HYPR_CONFIG_DIR/hyprland.conf"
 HYPR_CONFIG_EXPLICIT=0
-AUTOSTART_START_MARKER="# >>> Dynamic Glacier autostart >>>"
-AUTOSTART_END_MARKER="# <<< Dynamic Glacier autostart <<<"
+AUTOSTART_START_MARKER="# >>> DynaLinux autostart >>>"
+AUTOSTART_END_MARKER="# <<< DynaLinux autostart <<<"
 AUTOSTART_LINE="exec-once = $LAUNCHER_PATH"
-PACKAGE_AUTOSTART_LINE="exec-once = dynamic-glacier"
+PACKAGE_AUTOSTART_LINE="exec-once = dynalinux"
 ASSUME_YES=0
 
 usage() {
@@ -162,7 +162,7 @@ EOF
     fi
 
     if [ "$cleaned" -eq 0 ]; then
-        log "No Dynamic Glacier autostart entry found"
+        log "No DynaLinux autostart entry found"
     fi
 }
 

@@ -1,58 +1,50 @@
-# Maintainer: mavxa <mavxa at duck dot com>
+# Maintainer: Ali120B <alibashmail2010@yahoo.com>
 
-pkgname=dynamic-glacier-git
-pkgver=r15.gf0e6d20
+pkgname=dynalinux-git
+pkgver=r1.g0000000
 pkgrel=1
-pkgdesc="An experimental dynamic-island style widget for Hyprland, built with QML + Quickshell"
+pkgdesc="A compact Dynamic Island-style widget for Hyprland, built with QML + Quickshell"
 arch=('any')
-url="https://github.com/mavxa/DynamicGlacier"
+url="https://github.com/Ali120B/dynalinux"
 license=('MIT')
 depends=(
-  'bluez-utils'
   'fontconfig'
   'hyprland'
   'libpulse'
-  'networkmanager'
   'noto-fonts'
   'pipewire'
   'playerctl'
-  'psmisc'
   'qt6-5compat'
   'qt6-declarative'
   'quickshell'
   'ttf-material-symbols-variable'
   'upower'
 )
-optdepends=(
-  'kitty: WiFi settings via nmtui'
-  'bluedevil: Bluetooth device wizard'
-)
 makedepends=('git')
-provides=('dynamic-glacier')
-conflicts=('dynamic-glacier')
-install=dynamic-glacier.install
-source=("dynamic-glacier::git+https://github.com/mavxa/DynamicGlacier.git#branch=main")
+provides=('dynalinux')
+conflicts=('dynalinux')
+install=dynalinux.install
+source=("dynalinux::git+https://github.com/Ali120B/dynalinux.git#branch=main")
 sha256sums=('SKIP')
 
 pkgver() {
-  cd "$srcdir/dynamic-glacier"
+  cd "$srcdir/dynalinux"
   printf "r%s.g%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 package() {
-  cd "$srcdir/dynamic-glacier"
+  cd "$srcdir/dynalinux"
 
-  install -dm755 "$pkgdir/usr/share/dynamic-glacier"
-  cp -r --no-preserve=ownership quickshell "$pkgdir/usr/share/dynamic-glacier/"
+  install -dm755 "$pkgdir/usr/share/dynalinux"
+  cp -r --no-preserve=ownership quickshell "$pkgdir/usr/share/dynalinux/"
 
   install -dm755 "$pkgdir/usr/bin"
-  cat > "$pkgdir/usr/bin/dynamic-glacier" <<'EOF'
+  cat > "$pkgdir/usr/bin/dynalinux" <<'EOF'
 #!/usr/bin/env sh
 HYPR_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
-EXEC_LINE="exec-once = dynamic-glacier"
-MARKER_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/dynamic-glacier/autostart-done"
+EXEC_LINE="exec-once = dynalinux"
+MARKER_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/dynalinux/autostart-done"
 
-# First-run autostart registration
 if [ ! -f "$MARKER_FILE" ] && [ -d "$HYPR_DIR" ]; then
     target=""
     if [ -f "$HYPR_DIR/custom/execs.conf" ]; then
@@ -61,7 +53,7 @@ if [ ! -f "$MARKER_FILE" ] && [ -d "$HYPR_DIR" ]; then
         target="$HYPR_DIR/hyprland.conf"
     fi
 
-    if [ -n "$target" ] && ! grep -qF "dynamic-glacier" "$target" 2>/dev/null; then
+    if [ -n "$target" ] && ! grep -qF "dynalinux" "$target" 2>/dev/null; then
         printf '\n%s\n' "$EXEC_LINE" >> "$target"
     fi
 
@@ -69,12 +61,10 @@ if [ ! -f "$MARKER_FILE" ] && [ -d "$HYPR_DIR" ]; then
     touch "$MARKER_FILE"
 fi
 
-exec quickshell --path /usr/share/dynamic-glacier/quickshell "$@"
+exec quickshell --path /usr/share/dynalinux/quickshell "$@"
 EOF
-  chmod 755 "$pkgdir/usr/bin/dynamic-glacier"
+  chmod 755 "$pkgdir/usr/bin/dynalinux"
 
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
-  install -Dm644 docs/architecture.md "$pkgdir/usr/share/doc/$pkgname/architecture.md"
-  install -Dm644 docs/development.md "$pkgdir/usr/share/doc/$pkgname/development.md"
 }

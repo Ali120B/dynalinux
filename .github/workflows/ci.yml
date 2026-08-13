@@ -28,10 +28,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
 
       - name: Check shell syntax
-        run: bash -n install.sh uninstall.sh aur/PKGBUILD aur/dynamic-glacier.install
+        run: bash -n install.sh uninstall.sh aur/PKGBUILD aur/dynalinux.install
 
       - name: Run ShellCheck
-        run: shellcheck --shell=bash --exclude=SC2088 install.sh uninstall.sh aur/dynamic-glacier.install
+        run: shellcheck --shell=bash --exclude=SC2088 install.sh uninstall.sh aur/dynalinux.install
 
       - name: Test manual install and uninstall
         run: |
@@ -51,8 +51,8 @@ jobs:
             PATH="$test_home/bin:$PATH" \
             bash install.sh --copy --skip-deps --no-autostart
 
-          test -f "$test_home/.config/quickshell/DynamicGlacier/shell.qml"
-          test -x "$test_home/.local/bin/dynamic-glacier"
+          test -f "$test_home/.config/quickshell/DynaLinux/shell.qml"
+          test -x "$test_home/.local/bin/dynalinux"
 
           env \
             HOME="$test_home" \
@@ -60,8 +60,8 @@ jobs:
             XDG_BIN_HOME="$test_home/.local/bin" \
             bash uninstall.sh --yes
 
-          test ! -e "$test_home/.config/quickshell/DynamicGlacier"
-          test ! -e "$test_home/.local/bin/dynamic-glacier"
+          test ! -e "$test_home/.config/quickshell/DynaLinux"
+          test ! -e "$test_home/.local/bin/dynalinux"
 
   aur-package:
     name: AUR package
@@ -93,8 +93,8 @@ jobs:
 
           package_file="$(find /home/builder/aur -maxdepth 1 -type f -name '*.pkg.tar.*' -print -quit)"
           test -n "$package_file"
-          bsdtar -tf "$package_file" | grep -qx 'usr/bin/dynamic-glacier'
-          bsdtar -tf "$package_file" | grep -qx 'usr/share/dynamic-glacier/quickshell/shell.qml'
+          bsdtar -tf "$package_file" | grep -qx 'usr/bin/dynalinux'
+          bsdtar -tf "$package_file" | grep -qx 'usr/share/dynalinux/quickshell/shell.qml'
 
   quickshell-smoke:
     name: Quickshell smoke

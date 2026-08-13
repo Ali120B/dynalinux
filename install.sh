@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="Dynamic Glacier"
-CONFIG_NAME="DynamicGlacier"
+APP_NAME="DynaLinux"
+CONFIG_NAME="DynaLinux"
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$REPO_ROOT/quickshell"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 CONFIG_DIR="$XDG_CONFIG_HOME/quickshell/$CONFIG_NAME"
-LAUNCHER_PATH="$XDG_BIN_HOME/dynamic-glacier"
+LAUNCHER_PATH="$XDG_BIN_HOME/dynalinux"
 HYPR_CONFIG_DIR="$XDG_CONFIG_HOME/hypr"
 HYPR_CONFIG_PATH="$HYPR_CONFIG_DIR/hyprland.conf"
 HYPR_CONFIG_EXPLICIT=0
-AUTOSTART_START_MARKER="# >>> Dynamic Glacier autostart >>>"
-AUTOSTART_END_MARKER="# <<< Dynamic Glacier autostart <<<"
+AUTOSTART_START_MARKER="# >>> DynaLinux autostart >>>"
+AUTOSTART_END_MARKER="# <<< DynaLinux autostart <<<"
 AUTOSTART_LINE="exec-once = $LAUNCHER_PATH"
 COPY_MODE=1
 SKIP_DEPS=0

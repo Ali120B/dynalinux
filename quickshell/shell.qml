@@ -4,12 +4,12 @@
 
 import QtQuick
 import Quickshell
-import "modules/dynamicGlacier"
+import "modules/dynalinux"
 
 ShellRoot {
     id: root
 
-    DynamicGlacier {
+    DynaLinux {
     }
 
 }

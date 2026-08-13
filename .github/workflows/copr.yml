@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, dev]
     paths:
-      - "rpm/dynamic-glacier.spec"
+      - "rpm/dynalinux.spec"
       - "quickshell/**"
       - ".github/workflows/copr.yml"
   pull_request:
@@ -45,15 +45,15 @@ jobs:
             -e "s/^%global commit .*/%global commit     $GITHUB_SHA/" \
             -e "s/^%global shortcommit .*/%global shortcommit $short_commit/" \
             -e "s/^%global commitdate .*/%global commitdate  $commit_date/" \
-            rpm/dynamic-glacier.spec
+            rpm/dynalinux.spec
 
       - name: Build the source RPM
         run: |
           set -eu
           cd "$GITHUB_WORKSPACE"
           rpmdev-setuptree
-          spectool -g -R rpm/dynamic-glacier.spec
-          rpmbuild -bs rpm/dynamic-glacier.spec
+          spectool -g -R rpm/dynalinux.spec
+          rpmbuild -bs rpm/dynalinux.spec
 
       - name: Submit to COPR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.COPR_PROJECT != ''
