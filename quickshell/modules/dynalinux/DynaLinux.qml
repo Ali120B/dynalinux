@@ -33,6 +33,7 @@ Scope {
     property int timerDurationSec: 300
     property double timerEndsAt: 0
     property int timerRemainingSec: 300
+    property double timerClockMs: 0
     property bool liveLinksEnabled: true
     property bool liveLinksPrimed: false
     property string backlightPath: ""
@@ -49,6 +50,7 @@ Scope {
     property int demoStep: 0
     property bool trayBatteryDismissed: false
     property bool showTimeInIdle: false
+    property bool mediaLiked: false
 
     property real mediaPosition: 0
     property real mediaLength: 0
@@ -66,12 +68,11 @@ Scope {
     readonly property string visualMode: {
         if (root.volumeHudMode) return "volume";
         if (root.mode === "notify") return "notify";
-        if (root.expandedOpen) {
+        if (root.pointerInside || root.expandedOpen) {
             if (root.timerOpen)
                 return "timer";
             return root.settingsOpen ? "settings" : "expanded";
         }
-        if (root.pointerInside) return "hover";
         return root.mode;
     }
     readonly property int idleTopMargin: 0
@@ -82,12 +83,10 @@ Scope {
     readonly property int bumpHeight: 24
     readonly property int stripWidth: 98
     readonly property int stripHeight: 4
-    readonly property int hoverNoMusicWidth: 260
-    readonly property int hoverNoMusicHeight: 42
     readonly property int expandedNoMusicWidth: 340
     readonly property int expandedNoMusicHeight: 140
-    readonly property int expandedWithMusicWidth: 380
-    readonly property int expandedWithMusicHeight: 160
+    readonly property int expandedWithMusicWidth: 400
+    readonly property int expandedWithMusicHeight: 152
     readonly property int notifyWidth: 438
     readonly property int notifyHeight: 74
     readonly property int volumeWidth: 244
@@ -96,16 +95,18 @@ Scope {
     readonly property int timerHeight: 118
     readonly property string fontFamily: "Noto Sans"
     readonly property var audioSink: Pipewire.defaultAudioSink
-    readonly property string hoverTimeText: root.formatClockTime(root.currentDateTime)
-    readonly property string hoverDateText: root.formatClockDate(root.currentDateTime)
+    readonly property string clockTimeText: root.formatClockTime(root.currentDateTime)
+    readonly property string clockDateText: root.formatClockDate(root.currentDateTime)
     readonly property bool mediaAvailable: root.liveLinksEnabled && root.hasActiveMedia()
     readonly property int batteryPercent: root.batteryAvailable() ? root.batteryLevel() : -1
     readonly property bool batteryCharging: root.batteryAvailable() ? root.batteryPluggedIn() : false
     readonly property real normalizedMediaPosition: root.mediaLength > 0 ? Math.max(0, Math.min(1, root.mediaPosition / root.mediaLength)) : 0
+    readonly property bool mediaShuffleActive: root.activePlayer?.shuffle ?? false
     readonly property real timerProgress: {
-        if (!root.timerRunning || root.timerDurationSec <= 0)
+        if (!root.timerRunning || root.timerDurationSec <= 0 || root.timerEndsAt <= 0)
             return 0;
-        return 1 - Math.max(0, Math.min(1, root.timerRemainingSec / root.timerDurationSec));
+        const startAt = root.timerEndsAt - root.timerDurationSec * 1000;
+        return Math.max(0, Math.min(1, (root.timerClockMs - startAt) / (root.timerDurationSec * 1000)));
     }
     readonly property string timerText: root.formatTimer(root.timerRunning ? root.timerRemainingSec : root.timerDurationSec)
 
@@ -115,8 +116,6 @@ Scope {
             return root.notifyWidth;
         case "expanded":
             return root.expandedWithMedia ? root.expandedWithMusicWidth : root.expandedNoMusicWidth;
-        case "hover":
-            return root.hoverNoMusicWidth;
         case "volume":
             return root.volumeWidth;
         case "settings":
@@ -134,8 +133,6 @@ Scope {
             return root.notifyHeight;
         case "expanded":
             return root.expandedWithMedia ? root.expandedWithMusicHeight : root.expandedNoMusicHeight;
-        case "hover":
-            return root.hoverNoMusicHeight;
         case "volume":
             return root.volumeHeight;
         case "settings":
@@ -159,6 +156,7 @@ Scope {
     function keepInteractionOpen() {
         hoverLeaveTimer.stop();
         root.pointerInside = true;
+        root.expandedOpen = true;
     }
 
     function scheduleInteractionClose() {
@@ -412,6 +410,19 @@ Scope {
             player.position = positionSeconds;
     }
 
+    function mediaToggleShuffle() {
+        const player = root.activePlayer;
+        if (!player)
+            return;
+        if (player.shuffleSupported === false)
+            return;
+        player.shuffle = !player.shuffle;
+    }
+
+    function mediaToggleLike() {
+        root.mediaLiked = !root.mediaLiked;
+    }
+
     // --- Volume (PipeWire) -----------------------------------------------------
 
     function sinkVolumePercent() {
@@ -641,11 +652,14 @@ Scope {
     }
 
     Timer {
-        interval: 200
+        interval: 16
         repeat: true
         running: root.timerRunning
         triggeredOnStart: true
-        onTriggered: root.tickTimer()
+        onTriggered: {
+            root.timerClockMs = Date.now();
+            root.tickTimer();
+        }
     }
 
     Timer {
@@ -834,8 +848,8 @@ Scope {
                 artUrl: root.artUrl
                 mediaAvailable: root.mediaAvailable
                 fontFamily: root.fontFamily
-                timeText: root.hoverTimeText
-                dateText: root.hoverDateText
+                timeText: root.clockTimeText
+                dateText: root.clockDateText
                 weatherIcon: root.weatherIcon
                 weatherTemp: root.weatherTemp
                 weatherAvailable: root.weatherAvailable
@@ -845,6 +859,8 @@ Scope {
                 mediaPosition: root.mediaPosition
                 mediaLength: root.mediaLength
                 normalizedMediaPosition: root.normalizedMediaPosition
+                shuffleActive: root.mediaShuffleActive
+                mediaLiked: root.mediaLiked
                 timerRunning: root.timerRunning
                 timerProgress: root.timerProgress
                 timerText: root.timerText
@@ -855,6 +871,8 @@ Scope {
                 onMediaNextClicked: root.mediaNext()
                 onMediaPreviousClicked: root.mediaPrevious()
                 onMediaSeekRequested: function(pos) { root.mediaSeek(pos); }
+                onMediaShuffleClicked: root.mediaToggleShuffle()
+                onMediaLikeClicked: root.mediaToggleLike()
                 onSettingsClicked: {
                     root.keepInteractionOpen();
                     root.timerOpen = false;

@@ -28,6 +28,8 @@ Item {
     property real mediaPosition: 0
     property real mediaLength: 0
     property real normalizedMediaPosition: 0
+    property bool shuffleActive: false
+    property bool mediaLiked: false
     property bool timerRunning: false
     property real timerProgress: 0
     property string timerText: "05:00"
@@ -38,6 +40,8 @@ Item {
     signal mediaNextClicked()
     signal mediaPreviousClicked()
     signal mediaSeekRequested(real positionSeconds)
+    signal mediaShuffleClicked()
+    signal mediaLikeClicked()
     signal settingsClicked()
     signal toggleIdleTimeClicked()
     signal smallModeToggled()
@@ -286,6 +290,8 @@ Item {
             mediaPosition: root.mediaPosition
             mediaLength: root.mediaLength
             normalizedMediaPosition: root.normalizedMediaPosition
+            shuffleActive: root.shuffleActive
+            mediaLiked: root.mediaLiked
             timerText: root.timerText
             timerRunning: root.timerRunning
             timerHours: root.timerHours
@@ -296,6 +302,8 @@ Item {
             onMediaNextClicked: root.mediaNextClicked()
             onMediaPreviousClicked: root.mediaPreviousClicked()
             onMediaSeekRequested: function(pos) { root.mediaSeekRequested(pos); }
+            onMediaShuffleClicked: root.mediaShuffleClicked()
+            onMediaLikeClicked: root.mediaLikeClicked()
             onSettingsClicked: root.settingsClicked()
             onToggleIdleTimeClicked: root.toggleIdleTimeClicked()
             onSmallModeToggled: root.smallModeToggled()
@@ -311,17 +319,73 @@ Item {
 
         visible: root.timerRunning
         z: 20
-        x: Math.max(8, root.bottomRadius)
-        y: parent.height - height
-        height: 3
-        width: Math.max(0, (parent.width - 2 * timerEdge.x) * root.timerProgress)
-        radius: 1.5
-        color: "#ff8a1a"
+        anchors.fill: parent
+        color: "transparent"
 
-        Behavior on width {
+        property real smoothProgress: root.timerProgress
+
+        Behavior on smoothProgress {
             NumberAnimation {
-                duration: 180
+                duration: 120
                 easing.type: Easing.Linear
+            }
+        }
+
+        readonly property real stroke: 3
+        readonly property real inset: stroke / 2
+        readonly property real r: Math.max(2, Math.min(root.bottomRadius, (height - inset) / 2, (width - 2 * inset) / 2))
+        readonly property real leftX: inset
+        readonly property real rightX: width - inset
+        readonly property real topY: 0
+        readonly property real bottomY: height - inset
+        readonly property real sideLen: Math.max(0, bottomY - r - topY)
+        readonly property real bottomLen: Math.max(0, rightX - leftX - 2 * r)
+        readonly property real arcLen: Math.PI * r / 2
+        readonly property real pathLen: 2 * sideLen + bottomLen + 2 * arcLen
+        readonly property real drawn: pathLen * Math.max(0, Math.min(1, smoothProgress))
+
+        Shape {
+            anchors.fill: parent
+            antialiasing: true
+
+            ShapePath {
+                strokeWidth: timerEdge.stroke
+                strokeColor: "#ff8a1a"
+                fillColor: "transparent"
+                capStyle: ShapePath.RoundCap
+                joinStyle: ShapePath.RoundJoin
+                strokeStyle: ShapePath.DashLine
+                dashPattern: [Math.max(0.01, timerEdge.drawn), timerEdge.pathLen + 1]
+
+                startX: timerEdge.leftX
+                startY: timerEdge.topY
+
+                PathLine {
+                    x: timerEdge.leftX
+                    y: timerEdge.bottomY - timerEdge.r
+                }
+                PathArc {
+                    x: timerEdge.leftX + timerEdge.r
+                    y: timerEdge.bottomY
+                    radiusX: timerEdge.r
+                    radiusY: timerEdge.r
+                    direction: PathArc.Clockwise
+                }
+                PathLine {
+                    x: timerEdge.rightX - timerEdge.r
+                    y: timerEdge.bottomY
+                }
+                PathArc {
+                    x: timerEdge.rightX
+                    y: timerEdge.bottomY - timerEdge.r
+                    radiusX: timerEdge.r
+                    radiusY: timerEdge.r
+                    direction: PathArc.Clockwise
+                }
+                PathLine {
+                    x: timerEdge.rightX
+                    y: timerEdge.topY
+                }
             }
         }
     }
@@ -333,14 +397,6 @@ Item {
     states: [
         State {
             name: "collapsed"
-
-            PropertyChanges {
-                root.width: root.targetW
-                root.volumeMorph: 0
-            }
-        },
-        State {
-            name: "hover"
 
             PropertyChanges {
                 root.width: root.targetW

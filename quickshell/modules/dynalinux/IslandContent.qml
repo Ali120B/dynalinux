@@ -34,11 +34,15 @@ Item {
     property real mediaPosition: 0
     property real mediaLength: 0
     property real normalizedMediaPosition: 0
+    property bool shuffleActive: false
+    property bool mediaLiked: false
 
     signal mediaTogglePlayingClicked()
     signal mediaNextClicked()
     signal mediaPreviousClicked()
     signal mediaSeekRequested(real positionSeconds)
+    signal mediaShuffleClicked()
+    signal mediaLikeClicked()
     signal settingsClicked()
     signal toggleIdleTimeClicked()
     signal smallModeToggled()
@@ -66,7 +70,6 @@ Item {
 
     property real volumeMorph: 0
 
-    readonly property bool isHover: root.mode === "hover"
     readonly property bool isExpanded: root.mode === "expanded"
     readonly property bool isSettings: root.mode === "settings"
     readonly property bool isTimer: root.mode === "timer"
@@ -206,60 +209,6 @@ Item {
         }
     }
 
-    // --- Hover content: ALWAYS time + weather ------------------------------------
-
-    Item {
-        id: hoverContent
-
-        anchors.fill: parent
-        opacity: root.isHover ? 1 : 0
-        visible: opacity > 0
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 6
-            anchors.rightMargin: 6
-            spacing: 10
-
-            Text {
-                text: root.timeText
-                color: root.primaryText
-                font.family: root.fontFamily
-                font.pixelSize: 15
-                font.weight: Font.Bold
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            RowLayout {
-                spacing: 4
-                visible: root.weatherAvailable
-
-                MIcon {
-                    name: root.weatherIcon
-                    size: 10
-                    color: "#d8d8d8"
-                }
-
-                Text {
-                    text: root.weatherTemp
-                    color: root.dimText
-                    font.family: root.fontFamily
-                    font.pixelSize: 10
-                    font.weight: Font.DemiBold
-                }
-            }
-        }
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 160
-            }
-        }
-    }
-
     // --- Expanded content: NO music (clock centered + settings) -----------------
 
     Item {
@@ -352,32 +301,31 @@ Item {
         opacity: root.isExpanded && root.mediaAvailable ? 1 : 0
         visible: opacity > 0
 
-        // --- Status bar row: time + settings icons (top-left), battery (top-right) ---
+        // Compact top chrome: time + settings | battery
         Row {
-            x: 20
-            y: 6
-            spacing: 12
+            x: 14
+            y: 4
+            spacing: 6
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.timeText
                 color: root.primaryText
                 font.family: root.fontFamily
-                font.pixelSize: 13
+                font.pixelSize: 11
                 font.weight: Font.Bold
             }
 
-            // Settings icon
             Item {
-                width: 20
-                height: 20
+                width: 16
+                height: 16
                 anchors.verticalCenter: parent.verticalCenter
 
                 MIcon {
                     anchors.centerIn: parent
                     name: "settings"
-                    size: 14
-                    color: "#a0a0a0"
+                    size: 12
+                    color: "#8a8a8a"
                 }
 
                 MouseArea {
@@ -389,39 +337,40 @@ Item {
             }
         }
 
-        // Battery (top-right)
-        RowLayout {
-            x: parent.width - 20 - width
-            y: 8
-            spacing: 3
+        Row {
+            x: parent.width - 14 - width
+            y: 5
+            spacing: 2
             visible: root.batteryPercent >= 0
 
             MIcon {
                 name: root.batteryCharging ? "bolt" : "battery_5_bar"
-                size: 11
-                color: "#c8c8c8"
+                size: 10
+                color: "#b0b0b0"
+                anchors.verticalCenter: parent.verticalCenter
             }
 
             Text {
+                anchors.verticalCenter: parent.verticalCenter
                 text: root.batteryPercent + "%"
-                color: "#c8c8c8"
+                color: "#b0b0b0"
                 font.family: root.fontFamily
-                font.pixelSize: 11
+                font.pixelSize: 10
                 font.weight: Font.DemiBold
             }
         }
 
-        // --- Album art ---
+        // Track row: art + title/artist + bars
         Rectangle {
-            x: 16
-            y: 30
-            width: 50
-            height: 50
-            radius: 25
+            id: musicArt
+
+            x: 14
+            y: 24
+            width: 44
+            height: 44
+            radius: 12
             clip: true
             color: "#1a1a1a"
-            border.width: 1
-            border.color: "#222222"
 
             Image {
                 anchors.fill: parent
@@ -432,36 +381,35 @@ Item {
             }
         }
 
-        // --- Title + Artist ---
         Column {
-            x: 80
-            y: 34
-            spacing: 4
+            x: musicArt.x + musicArt.width + 12
+            y: musicArt.y + 6
+            spacing: 3
+            width: parent.width - x - 36
 
             Text {
+                width: parent.width
                 text: root.title
                 color: root.primaryText
                 font.family: root.fontFamily
                 font.pixelSize: 14
                 font.weight: Font.Bold
                 elide: Text.ElideRight
-                width: 200
             }
 
             Text {
+                width: parent.width
                 text: root.artist
                 color: root.secondaryText
                 font.family: root.fontFamily
-                font.pixelSize: 12
+                font.pixelSize: 11
                 elide: Text.ElideRight
-                width: 200
             }
         }
 
-        // --- Audio bars (right side of content area) ---
         Item {
-            x: parent.width - 40
-            y: 38
+            x: parent.width - 28
+            y: musicArt.y + 12
             width: 14
             height: 20
 
@@ -475,7 +423,7 @@ Item {
                     Rectangle {
                         width: 2
                         radius: 1
-                        color: root.playing ? "#e0e0e0" : "#505050"
+                        color: root.playing ? "#f0f0f0" : "#505050"
                         anchors.verticalCenter: parent.verticalCenter
                         height: 3
 
@@ -499,28 +447,30 @@ Item {
             }
         }
 
-        // --- Timeline ---
+        // Progress
         Item {
-            x: 16
-            y: 84
-            width: parent.width - 32
-            height: 8
+            id: musicTimeline
+
+            x: 14
+            y: 78
+            width: parent.width - 28
+            height: 4
 
             Rectangle {
                 anchors.fill: parent
                 radius: height / 2
-                color: "#262626"
+                color: "#2a2a2a"
             }
 
             Rectangle {
                 width: parent.width * root.normalizedMediaPosition
                 height: parent.height
                 radius: height / 2
-                color: "#fafafa"
+                color: "#ffffff"
 
                 Behavior on width {
                     NumberAnimation {
-                        duration: 200
+                        duration: 180
                         easing.type: Easing.OutCubic
                     }
                 }
@@ -528,6 +478,8 @@ Item {
 
             MouseArea {
                 anchors.fill: parent
+                anchors.topMargin: -8
+                anchors.bottomMargin: -8
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     const ratio = mouse.x / parent.width;
@@ -536,10 +488,9 @@ Item {
             }
         }
 
-        // --- Time labels ---
         Text {
-            x: 16
-            y: 92
+            x: musicTimeline.x
+            y: musicTimeline.y + 8
             text: root.formatMediaTime(root.mediaPosition)
             color: root.secondaryText
             font.family: root.fontFamily
@@ -547,24 +498,51 @@ Item {
         }
 
         Text {
-            x: parent.width - 16 - width
-            y: 92
-            text: "-" + root.formatMediaTime(Math.max(0, root.mediaLength - root.mediaPosition))
+            x: musicTimeline.x + musicTimeline.width - width
+            y: musicTimeline.y + 8
+            text: root.formatMediaTime(root.mediaLength)
             color: root.secondaryText
             font.family: root.fontFamily
             font.pixelSize: 10
         }
 
-        // --- Controls ---
+        // Controls: shuffle · prev · pause · next · like
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             y: 108
-            spacing: 24
+            spacing: 22
 
-            // Previous
             Item {
-                width: 28
-                height: 28
+                width: 26
+                height: 26
+
+                MIcon {
+                    anchors.centerIn: parent
+                    name: "shuffle"
+                    size: 18
+                    color: root.shuffleActive ? "#ff4d4d" : "#d0d0d0"
+                }
+
+                Rectangle {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
+                    width: 3
+                    height: 3
+                    radius: 1.5
+                    color: "#ff4d4d"
+                    visible: root.shuffleActive
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.mediaShuffleClicked()
+                }
+            }
+
+            Item {
+                width: 26
+                height: 26
 
                 MIcon {
                     anchors.centerIn: parent
@@ -580,18 +558,15 @@ Item {
                 }
             }
 
-            // Play / Pause
-            Rectangle {
-                width: 32
-                height: 32
-                radius: 16
-                color: root.primaryText
+            Item {
+                width: 28
+                height: 28
 
                 MIcon {
                     anchors.centerIn: parent
                     name: root.playing ? "pause" : "play_arrow"
-                    size: 18
-                    color: "#000000"
+                    size: 26
+                    color: root.primaryText
                 }
 
                 MouseArea {
@@ -601,10 +576,9 @@ Item {
                 }
             }
 
-            // Next
             Item {
-                width: 28
-                height: 28
+                width: 26
+                height: 26
 
                 MIcon {
                     anchors.centerIn: parent
@@ -617,6 +591,25 @@ Item {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.mediaNextClicked()
+                }
+            }
+
+            Item {
+                width: 26
+                height: 26
+
+                MIcon {
+                    anchors.centerIn: parent
+                    name: "star"
+                    size: 18
+                    filled: root.mediaLiked
+                    color: root.mediaLiked ? "#f5c542" : "#d0d0d0"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.mediaLikeClicked()
                 }
             }
         }
@@ -883,8 +876,19 @@ Item {
                 height: 88
 
                 Shape {
+                    id: timerRingShape
+
                     anchors.fill: parent
                     antialiasing: true
+
+                    property real smoothSweep: 360 * root.timerProgress
+
+                    Behavior on smoothSweep {
+                        NumberAnimation {
+                            duration: 120
+                            easing.type: Easing.Linear
+                        }
+                    }
 
                     ShapePath {
                         strokeWidth: 5
@@ -914,7 +918,7 @@ Item {
                             radiusX: 36
                             radiusY: 36
                             startAngle: -90
-                            sweepAngle: 360 * root.timerProgress
+                            sweepAngle: timerRingShape.smoothSweep
                         }
                     }
                 }

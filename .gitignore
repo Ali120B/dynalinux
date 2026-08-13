@@ -3,6 +3,5 @@
 *.log
 *.qmlc
 *.jsc
-
-
+build/
 session-ses_*.md
