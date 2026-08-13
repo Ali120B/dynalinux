@@ -50,7 +50,6 @@ Scope {
     property int demoStep: 0
     property bool trayBatteryDismissed: false
     property bool showTimeInIdle: false
-    property bool mediaLiked: false
 
     property real mediaPosition: 0
     property real mediaLength: 0
@@ -101,7 +100,6 @@ Scope {
     readonly property int batteryPercent: root.batteryAvailable() ? root.batteryLevel() : -1
     readonly property bool batteryCharging: root.batteryAvailable() ? root.batteryPluggedIn() : false
     readonly property real normalizedMediaPosition: root.mediaLength > 0 ? Math.max(0, Math.min(1, root.mediaPosition / root.mediaLength)) : 0
-    readonly property bool mediaShuffleActive: root.activePlayer?.shuffle ?? false
     readonly property real timerProgress: {
         if (!root.timerRunning || root.timerDurationSec <= 0 || root.timerEndsAt <= 0)
             return 0;
@@ -408,19 +406,6 @@ Scope {
         const player = root.activePlayer;
         if (player)
             player.position = positionSeconds;
-    }
-
-    function mediaToggleShuffle() {
-        const player = root.activePlayer;
-        if (!player)
-            return;
-        if (player.shuffleSupported === false)
-            return;
-        player.shuffle = !player.shuffle;
-    }
-
-    function mediaToggleLike() {
-        root.mediaLiked = !root.mediaLiked;
     }
 
     // --- Volume (PipeWire) -----------------------------------------------------
@@ -859,8 +844,6 @@ Scope {
                 mediaPosition: root.mediaPosition
                 mediaLength: root.mediaLength
                 normalizedMediaPosition: root.normalizedMediaPosition
-                shuffleActive: root.mediaShuffleActive
-                mediaLiked: root.mediaLiked
                 timerRunning: root.timerRunning
                 timerProgress: root.timerProgress
                 timerText: root.timerText
@@ -871,8 +854,6 @@ Scope {
                 onMediaNextClicked: root.mediaNext()
                 onMediaPreviousClicked: root.mediaPrevious()
                 onMediaSeekRequested: function(pos) { root.mediaSeek(pos); }
-                onMediaShuffleClicked: root.mediaToggleShuffle()
-                onMediaLikeClicked: root.mediaToggleLike()
                 onSettingsClicked: {
                     root.keepInteractionOpen();
                     root.timerOpen = false;

@@ -28,8 +28,6 @@ Item {
     property real mediaPosition: 0
     property real mediaLength: 0
     property real normalizedMediaPosition: 0
-    property bool shuffleActive: false
-    property bool mediaLiked: false
     property bool timerRunning: false
     property real timerProgress: 0
     property string timerText: "05:00"
@@ -40,8 +38,6 @@ Item {
     signal mediaNextClicked()
     signal mediaPreviousClicked()
     signal mediaSeekRequested(real positionSeconds)
-    signal mediaShuffleClicked()
-    signal mediaLikeClicked()
     signal settingsClicked()
     signal toggleIdleTimeClicked()
     signal smallModeToggled()
@@ -290,8 +286,6 @@ Item {
             mediaPosition: root.mediaPosition
             mediaLength: root.mediaLength
             normalizedMediaPosition: root.normalizedMediaPosition
-            shuffleActive: root.shuffleActive
-            mediaLiked: root.mediaLiked
             timerText: root.timerText
             timerRunning: root.timerRunning
             timerHours: root.timerHours
@@ -302,8 +296,6 @@ Item {
             onMediaNextClicked: root.mediaNextClicked()
             onMediaPreviousClicked: root.mediaPreviousClicked()
             onMediaSeekRequested: function(pos) { root.mediaSeekRequested(pos); }
-            onMediaShuffleClicked: root.mediaShuffleClicked()
-            onMediaLikeClicked: root.mediaLikeClicked()
             onSettingsClicked: root.settingsClicked()
             onToggleIdleTimeClicked: root.toggleIdleTimeClicked()
             onSmallModeToggled: root.smallModeToggled()

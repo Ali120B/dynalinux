@@ -34,15 +34,11 @@ Item {
     property real mediaPosition: 0
     property real mediaLength: 0
     property real normalizedMediaPosition: 0
-    property bool shuffleActive: false
-    property bool mediaLiked: false
 
     signal mediaTogglePlayingClicked()
     signal mediaNextClicked()
     signal mediaPreviousClicked()
     signal mediaSeekRequested(real positionSeconds)
-    signal mediaShuffleClicked()
-    signal mediaLikeClicked()
     signal settingsClicked()
     signal toggleIdleTimeClicked()
     signal smallModeToggled()
@@ -506,39 +502,11 @@ Item {
             font.pixelSize: 10
         }
 
-        // Controls: shuffle · prev · pause · next · like
+        // Controls: prev · pause · next
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             y: 108
-            spacing: 22
-
-            Item {
-                width: 26
-                height: 26
-
-                MIcon {
-                    anchors.centerIn: parent
-                    name: "shuffle"
-                    size: 18
-                    color: root.shuffleActive ? "#ff4d4d" : "#d0d0d0"
-                }
-
-                Rectangle {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: parent.bottom
-                    width: 3
-                    height: 3
-                    radius: 1.5
-                    color: "#ff4d4d"
-                    visible: root.shuffleActive
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.mediaShuffleClicked()
-                }
-            }
+            spacing: 28
 
             Item {
                 width: 26
@@ -591,25 +559,6 @@ Item {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.mediaNextClicked()
-                }
-            }
-
-            Item {
-                width: 26
-                height: 26
-
-                MIcon {
-                    anchors.centerIn: parent
-                    name: "star"
-                    size: 18
-                    filled: root.mediaLiked
-                    color: root.mediaLiked ? "#f5c542" : "#d0d0d0"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.mediaLikeClicked()
                 }
             }
         }
