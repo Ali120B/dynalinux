@@ -11,7 +11,6 @@ Based on [Dynamic Glacier](https://github.com/mavxa/DynamicGlacier) by [mavxa](h
 ## Features
 
 - **Idle handle** — small pure-black bump (or a thin strip) at the top center
-- **Expand on hover or click** — clock + date, battery, and settings
 - **Media player** — album art, track info, scrubber, and skip / play when MPRIS is active
 - **Timer** — right-click opens hours/minutes + Start/Reset; progress wraps the island edge
 - **Volume & brightness** — the handle morphs into a short level pill (no second OSD)
